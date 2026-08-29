@@ -1,0 +1,23 @@
+---
+ - name: создание файл
+   hosts: workers
+   become: yes
+   gather_facts: yes
+
+   tasks:
+     - name: создание файла
+       copy:
+         content: |
+           Этот файл создан Ansible.
+           Hostname: {{ ansible_hostname }}.
+         dest: /tmp/info.txt
+     - name: Создание пользователя
+       ansible.builtin.user:
+         name: ansible_test
+         home: /home/ansible_test
+         shell: /bin/bash
+         state: present
+         create_home: yes
+     - name: дебаг
+       debug:
+         msg: all sucessfully done!

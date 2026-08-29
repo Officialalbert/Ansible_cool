@@ -1,0 +1,39 @@
+---
+- name: Файлики
+  hosts: workers
+  become: yes
+
+  vars:
+    users:
+      - username: karakes
+        password: "Passw0rd1"
+      - username: parapez
+        password: "Passw0rd2"
+      - username: makaka
+        password: "Passw0rd3"
+
+  tasks:
+    - name: 1. создание группы
+      group:
+        name: developers
+        state: present
+    - name: 2. скачивание passlib
+      apt:
+        name: python3-passlib
+        state: present
+    - name: 3. создание пользователей под группу :)
+      user:
+        name: "{{ item.username }}"
+        password: "{{ item.password | password_hash('sha512') }}"
+        group: developers
+        home: "/home/{{ item.username }}"
+        create_home: yes
+        shell: /bin/bash
+        state: present
+      loop: "{{ users }}"
+
+    - name: 4. last first bit
+      copy:
+        content:  "How are you my brother: {{ item.username }}"
+        dest: "/home/{{ item.username }}/welcome.txt"
+      loop: "{{ users }}"

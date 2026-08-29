@@ -1,0 +1,39 @@
+---
+- name: Создание пользователей и приветственных файлов
+  hosts: workers
+  become: yes
+
+  vars:
+    users:
+      - username: dev1
+        password: "Passw0rd1"
+      - username: dev2
+        password: "Passw0rd2"
+      - username: dev3
+        password: "Passw0rd3"
+
+  tasks:
+    - name: 1. Создать группу developers
+      group:
+        name: developers
+        state: present
+
+    - name: 2. Создать пользователей с домашними папками и паролями
+      user:
+        name: "{{ item.username }}"
+        password: "{{ item.password | password_hash('sha512') }}"
+        group: developers
+        home: "/home/{{ item.username }}"
+        create_home: yes
+        shell: /bin/bash
+        state: present
+      loop: "{{ users }}"
+
+    - name: 3. Создать файл welcome.txt в домашней папке каждого пользователя
+      copy:
+        content: "Welcome, {{ item.username }}"
+        dest: "/home/{{ item.username }}/welcome.txt"
+        owner: "{{ item.username }}"
+        group: developers
+        mode: '0644'
+      loop: "{{ users }}"
